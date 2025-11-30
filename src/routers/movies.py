@@ -1,0 +1,57 @@
+from fastapi import APIRouter, HTTPException, Depends
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from src.database import get_session
+from src.schemas.movie import MovieCreate, MovieUpdate, MovieOut
+from src.repositories import movies as repo
+
+
+router = APIRouter(prefix="/movies", tags=["Movies"])
+
+
+@router.get("/", response_model=list[MovieOut])
+async def get_movie_list(session: AsyncSession = Depends(get_session), limit: int = 50, offset: int = 0):
+    return await repo.get_movies_list(session, limit, offset)
+
+
+@router.get("/{movie_id}", response_model=MovieOut)
+async def get_movie_list(year_min: int | None,
+                         year_max: int | None,
+                         rating_min: float | None,
+                         order_by: str = "-rating",
+                         limit: int = 50,
+                         offset: int = 0,
+                         session: AsyncSession = Depends(get_session)):
+    movie = await repo.get_movies_list(session, year_min, year_max, rating_min, order_by, limit, offset)
+    if not movie:
+        raise HTTPException(status_code=404, detail="Movie not found")
+    return movie
+
+
+@router.post("/", response_model=MovieOut)
+async def create_movie(movie_data: MovieCreate, session: AsyncSession = Depends(get_session)):
+    return await repo.create_movie(session, movie_data)
+
+
+@router.put("/{movie_id}", response_model=MovieOut)
+async def put_movie(movie_id: int, movie_data: MovieCreate, session: AsyncSession = Depends(get_session)):
+    movie = await repo.put_movie(session, movie_id, movie_data)
+    if not movie:
+        raise HTTPException(status_code=404, detail="Movie not found")
+    return movie
+
+
+@router.patch("/{movie_id}", response_model=MovieOut)
+async def patch_movie(movie_id: int, movie_data: MovieUpdate, session: AsyncSession = Depends(get_session)):
+    movie = await repo.patch_movie(session, movie_id, movie_data)
+    if not movie:
+        raise HTTPException(status_code=404, detail="Movie not found")
+    return movie
+
+
+@router.delete("/{movie_id}")
+async def delete_movie(movie_id: int, session: AsyncSession = Depends(get_session)):
+    is_deleted = await repo.delete_movie(session, movie_id)
+    if not is_deleted:
+        raise HTTPException(status_code=404, detail="Movie not found")
+    return { "message": "Movie deleted" }
