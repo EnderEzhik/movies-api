@@ -27,11 +27,11 @@ async def get_movie(session: AsyncSession, movie_id: int) -> Movie | None:
     return await session.get(Movie, movie_id)
 
 
-async def get_movies_list(session: AsyncSession,
+async def get_movie_list(session: AsyncSession,
                           year_min: int | None,
                           year_max: int | None,
                           rating_min: float | None,
-                          order_by: str = "-rating",
+                          order_by: str | None = "-rating",
                           limit: int = 50,
                           offset: int = 0) -> list[Movie]:
     query = select(Movie)
@@ -53,7 +53,7 @@ async def get_movies_list(session: AsyncSession,
     limit = max(1, min(limit, 100))
     offset = max(0, offset)
 
-    query = select(Movie).offset(offset).limit(limit)
+    query = query.offset(offset).limit(limit)
     result = await session.execute(query)
     return list(result.scalars().all())
 
@@ -77,7 +77,7 @@ async def patch_movie(session: AsyncSession, movie_id: int, movie_data: MovieUpd
     return movie
 
 
-async def delete_movie(session: AsyncSession, movie_id) -> bool:
+async def delete_movie(session: AsyncSession, movie_id: int) -> bool:
     movie_to_delete = await session.get(Movie, movie_id)
     if not movie_to_delete:
         return False

@@ -10,19 +10,19 @@ router = APIRouter(prefix="/movies", tags=["Movies"])
 
 
 @router.get("/", response_model=list[MovieOut])
-async def get_movie_list(session: AsyncSession = Depends(get_session), limit: int = 50, offset: int = 0):
-    return await repo.get_movies_list(session, limit, offset)
-
-
-@router.get("/{movie_id}", response_model=MovieOut)
-async def get_movie_list(year_min: int | None,
-                         year_max: int | None,
-                         rating_min: float | None,
-                         order_by: str = "-rating",
+async def get_movie_list(year_min: int | None = None,
+                         year_max: int | None = None,
+                         rating_min: float | None = None,
+                         order_by: str | None = "-rating",
                          limit: int = 50,
                          offset: int = 0,
                          session: AsyncSession = Depends(get_session)):
-    movie = await repo.get_movies_list(session, year_min, year_max, rating_min, order_by, limit, offset)
+    return await repo.get_movies_list(session, year_min, year_max, rating_min, order_by, limit, offset)
+
+
+@router.get("/{movie_id}", response_model=MovieOut)
+async def get_movie(movie_id: int, session: AsyncSession = Depends(get_session)):
+    movie = await repo.get_movie(session, movie_id)
     if not movie:
         raise HTTPException(status_code=404, detail="Movie not found")
     return movie

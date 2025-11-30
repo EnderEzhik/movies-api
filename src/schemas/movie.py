@@ -20,7 +20,7 @@ class MovieCreate(MovieBase):
     pass
 
 
-class MovieUpdate(MovieBase):
+class MovieUpdate(BaseModel):
     title: str | None = Field(default=None, min_length=2, max_length=100)
     genre: str | None = Field(default=None, min_length=2, max_length=50)
     rating: float | None = Field(default=None, ge=0, le=10)
